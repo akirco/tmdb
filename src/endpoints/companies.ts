@@ -1,13 +1,16 @@
 import {
-  CompanyDetails,
   AlternativeNames,
+  CompanyDetails,
   CompanyImages,
 } from './../types/companies';
 import { BaseEndpoint } from './base';
 
 export class CompaniesEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async details(id: number): Promise<CompanyDetails> {

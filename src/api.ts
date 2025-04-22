@@ -1,17 +1,23 @@
 import fetch from 'cross-fetch';
-import { parseOptions } from './utils';
-import { ErrorResponse } from './types';
 import { BASE_URL_V3 } from './common/constants';
+import { ErrorResponse } from './types';
+import { parseOptions } from './utils';
 
 export class Api {
-  constructor(private accessToken: string) {
+  private readonly baseURL: string;
+
+  constructor(
+    private accessToken: string,
+    baseURL?: string
+  ) {
     this.accessToken = accessToken;
+    this.baseURL = baseURL || BASE_URL_V3;
   }
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async get<T>(path: string, options?: Record<string, any>): Promise<T> {
     const params = parseOptions(options);
-    const response = await fetch(`${BASE_URL_V3}${path}?${params}`, {
+    const response = await fetch(`${this.baseURL}${path}?${params}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${this.accessToken}`,

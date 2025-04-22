@@ -1,16 +1,19 @@
-import { BaseEndpoint } from './base';
 import {
   LanguageOption,
   RegionResult,
   WatchProviderResult,
   WatchRegionOption,
 } from '../types';
+import { BaseEndpoint } from './base';
 
 type ProviderOptions = WatchRegionOption & LanguageOption;
 
 export class WatchProvidersEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async getRegions(options?: LanguageOption): Promise<RegionResult> {

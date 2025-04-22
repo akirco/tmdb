@@ -1,4 +1,3 @@
-import { BaseEndpoint } from './base';
 import {
   AggregateCredits,
   AlternativeTitles,
@@ -25,20 +24,24 @@ import {
   TimezoneOption,
   TopRatedTvShows,
   Translations,
-  TvShowImageOptions,
-  TvShowVideoOptions,
   TvShowChangeValue,
   TvShowDetails,
+  TvShowImageOptions,
   TvShowsAiringToday,
+  TvShowVideoOptions,
   Videos,
   WatchProviders,
 } from '../types';
+import { BaseEndpoint } from './base';
 
 const BASE_TV = '/tv';
 
 export class TvShowsEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async details<T extends AppendToResponseTvKey[] | undefined>(

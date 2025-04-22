@@ -1,4 +1,3 @@
-import { BaseEndpoint } from './base';
 import {
   Configuration,
   CountryConfiguration,
@@ -6,10 +5,14 @@ import {
   LanguageConfiguration,
   TimezoneConfiguration,
 } from '../types/configuration';
+import { BaseEndpoint } from './base';
 
 export class ConfigurationEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async getApiConfiguration(): Promise<Configuration> {

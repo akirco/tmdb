@@ -1,18 +1,18 @@
 import {
+  AggregateCredits,
+  AppendToResponse,
+  AppendToResponseTvSeasonKey,
   ChangeOption,
   Changes,
   Credits,
   ExternalIds,
   Images,
   LanguageOption,
-  TvSeasonChangeValue,
   SeasonDetails,
   SeasonSelection,
   Translations,
+  TvSeasonChangeValue,
   Videos,
-  AppendToResponseTvSeasonKey,
-  AppendToResponse,
-  AggregateCredits,
 } from '..';
 import { BaseEndpoint } from './base';
 
@@ -35,8 +35,8 @@ export interface TvSeasonVideoSearchOptions extends LanguageOption {
 }
 
 export class TvSeasonsEndpoint extends BaseEndpoint {
-  constructor(accessToken: string) {
-    super(accessToken);
+  constructor(accessToken: string, baseURL?: string) {
+    super(accessToken, baseURL);
   }
 
   async details<T extends AppendToResponseTvSeasonKey[] | undefined>(

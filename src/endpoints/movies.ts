@@ -1,4 +1,3 @@
-import { BaseEndpoint } from './base';
 import {
   AlternativeTitles,
   AppendToResponse,
@@ -28,6 +27,7 @@ import {
   Videos,
   WatchProviders,
 } from '../types';
+import { BaseEndpoint } from './base';
 
 const BASE_MOVIE = '/movie';
 
@@ -39,8 +39,11 @@ export interface MoviesImageSearchOptions extends LanguageOption {
 }
 
 export class MoviesEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async details<T extends AppendToResponseMovieKey[] | undefined>(

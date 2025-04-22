@@ -1,9 +1,9 @@
-import { BaseEndpoint } from './base';
 import { ExternalIdOptions, FindResult } from '../types';
+import { BaseEndpoint } from './base';
 
 export class FindEndpoint extends BaseEndpoint {
-  constructor(accessToken: string) {
-    super(accessToken);
+  constructor(accessToken: string, baseURL?: string) {
+    super(accessToken, baseURL);
   }
 
   async byExternalId(

@@ -2,27 +2,27 @@ import {
   AppendToResponse,
   AppendToResponsePersonKey,
   ChangeOption,
+  Changes,
   ExternalIds,
+  LanguageOption,
   PageOption,
   PeopleImages,
-  PersonTranslations,
+  PersonChangeValue,
   PersonCombinedCredits,
   PersonDetails,
   PersonMovieCredit,
+  PersonTranslations,
   PersonTvShowCredit,
-  TaggedImages,
-  Changes,
-  PersonChangeValue,
-  LanguageOption,
   PopularPeople,
+  TaggedImages,
 } from '../types';
 import { BaseEndpoint } from './base';
 
 const BASE_PERSON = '/person';
 
 export class PeopleEndpoint extends BaseEndpoint {
-  constructor(accessToken: string) {
-    super(accessToken);
+  constructor(accessToken: string, baseURL?: string) {
+    super(accessToken, baseURL);
   }
 
   async details<T extends AppendToResponsePersonKey[] | undefined>(

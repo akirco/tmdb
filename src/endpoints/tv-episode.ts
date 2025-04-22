@@ -1,17 +1,17 @@
 import {
+  AppendToResponse,
+  AppendToResponseTvEpisodeKey,
+  ChangeOption,
+  Changes,
   Episode,
   EpisodeSelection,
-  LanguageOption,
-  ChangeOption,
-  TvEpisodeCredit,
   ExternalIds,
   Images,
+  LanguageOption,
+  TvEpisodeChangeValue,
+  TvEpisodeCredit,
   TvEpisodeTranslations,
   Videos,
-  AppendToResponse,
-  Changes,
-  TvEpisodeChangeValue,
-  AppendToResponseTvEpisodeKey,
 } from '..';
 import { BaseEndpoint } from './base';
 
@@ -34,8 +34,8 @@ export interface TvEpisodeVideoSearchOptions extends LanguageOption {
 }
 
 export class TvEpisodesEndpoint extends BaseEndpoint {
-  constructor(accessToken: string) {
-    super(accessToken);
+  constructor(accessToken: string, baseURL?: string) {
+    super(accessToken, baseURL);
   }
 
   async details<T extends AppendToResponseTvEpisodeKey[] | undefined>(

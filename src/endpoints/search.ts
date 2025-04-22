@@ -1,5 +1,3 @@
-import { BaseEndpoint } from './base';
-import { MultiSearchResult, Search } from '../types/search';
 import {
   Collection,
   Company,
@@ -10,6 +8,8 @@ import {
   RegionOption,
   TV,
 } from '../types';
+import { MultiSearchResult, Search } from '../types/search';
+import { BaseEndpoint } from './base';
 
 const BASE_SEARCH = '/search';
 
@@ -60,8 +60,11 @@ export interface MultiSearchOptions
 }
 
 export class SearchEndpoint extends BaseEndpoint {
-  constructor(protected readonly accessToken: string) {
-    super(accessToken);
+  constructor(
+    protected readonly accessToken: string,
+    baseURL?: string
+  ) {
+    super(accessToken, baseURL);
   }
 
   async companies(options: SearchOptions): Promise<Search<Company>> {
