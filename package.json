@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "compile": "rm -rf dist && tsc -d",
+    "compile": "tsc -d",
     "lint": "eslint src/",
     "lint:fix": "eslint --fix",
     "format": "prettier --write src",
