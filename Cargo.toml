@@ -1,0 +1,20 @@
+[package]
+name = "tmdb"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros"] }
+reqwest = { version = "0.13.3", features = ["json"] }
+serde = "1.0.228"
+serde_json = "1.0.149"
+clap = { version = "4.6.1", features = ["derive"] }
+clap_complete = "4.6"
+url = "2.5.8"
+anyhow = "1.0.102"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = "symbols"
