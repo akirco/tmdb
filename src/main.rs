@@ -16,128 +16,142 @@ const STYLES: Styles = Styles::styled()
     .literal(AnsiColor::Cyan.on_default().bold())
     .placeholder(AnsiColor::Cyan.on_default());
 
-/// TMDB CLI – 简易的tmdb命令行工具，支持搜索、详情查询、列表浏览、趋势查看和高级发现功能。
+/// TMDB CLI - Query movies, TV shows, actors from The Movie Database
 #[derive(Parser, Debug)]
 #[command(name = "tmdb")]
-#[command(version = "1.4.1",styles = STYLES)]
+#[command(version = "0.1.0",styles = STYLES)]
 #[command(
-    after_help = "shell completion:\n  # 方式1: 生成 completion 脚本 (手动重定向)\n  tmdb --completions bash > ~/.local/share/bash-completion/completions/tmdb\n  tmdb --completions zsh > ~/.zsh/completions/_tmdb\n  tmdb --completions fish > ~/.config/fish/completions/tmdb.fish\n\n  # 方式2: eval 初始化 (推荐)\n  eval \"$(tmdb --init bash)\"\n  eval \"$(tmdb --init zsh)\"\n  tmdb --init fish | source"
+    after_help = "Shell completion:\n  # Method 1: Generate completion script (manual redirect)\n  tmdb --completions bash > ~/.local/share/bash-completion/completions/tmdb\n  tmdb --completions zsh > ~/.zsh/completions/_tmdb\n  tmdb --completions fish > ~/.config/fish/completions/tmdb.fish\n\n  # Method 2: eval init (recommended)\n  eval \"$(tmdb --init bash)\"\n  eval \"$(tmdb --init zsh)\"\n  tmdb --init fish | source"
 )]
 #[clap(group = ArgGroup::new("modes").required(true).args(&["wd", "id", "list", "trend", "discover", "genres"]))]
 struct Cli {
-    /// 搜索关键词
+    /// Search query
     #[arg(
         short,
         long,
         value_name = "QUERY",
-        help = "在 TMDB 中搜索电影、剧集、演员等"
+        help = "Search movies, TV shows, actors in TMDB"
     )]
     wd: Option<String>,
 
-    /// 页码
-    #[arg(short, long, default_value = "1", help = "搜索结果/列表的页码")]
+    /// Page number
+    #[arg(
+        short,
+        long,
+        default_value = "1",
+        help = "Page number for results/list"
+    )]
     pg: u32,
 
-    /// 语言 (例如: zh-CN, en-US, ja-JP)
+    /// Language (e.g., zh-CN, en-US, ja-JP)
     #[arg(
         short = 'L',
         long,
         default_value = "zh-CN",
-        help = "API 返回数据的语言"
+        help = "API response language"
     )]
     lang: String,
 
-    /// 包含成人内容 (仅搜索时有效)
-    #[arg(short, long, help = "是否包含成人内容")]
+    /// Include adult content (only works with search)
+    #[arg(short, long, help = "Include adult content")]
     adult: bool,
 
-    /// 媒体类型
+    /// Media type
     #[arg(
         short = 't',
         long = "type",
         value_enum,
         default_value = "multi",
-        help = "媒体类型"
+        help = "Media type"
     )]
     ty: MediaType,
 
-    /// TMDB ID (查看详情)
+    /// TMDB ID (for details)
     #[arg(
         short,
         long,
         value_name = "ID",
-        help = "根据 ID 查询电影/剧集/演员详情"
+        help = "Get movie/TV/actor details by ID"
     )]
     id: Option<u64>,
 
-    /// 季号 (与 --id 和 --type tv 配合使用，查询指定季信息)
-    #[arg(short = 'S', long, help = "查询指定季的信息 (需要 --id)")]
+    /// Season number
+    #[arg(
+        short = 'S',
+        long,
+        help = "Get specific season info (use with --id or --wd)"
+    )]
     season: Option<u32>,
 
-    /// 列表浏览 (流行/高评分/正在上映等)
+    /// Browse category lists
     #[arg(
         short = 'l',
         long,
         value_enum,
-        help = "浏览分类列表，例如: popular, top_rated, now_playing"
+        help = "Browse category lists: popular, top-rated, now-playing"
     )]
     list: Option<Category>,
 
-    /// Trending 时间窗口
-    #[arg(short = 'r', long, value_enum, help = "查询热门趋势 (day / week)")]
+    /// Trending time window
+    #[arg(
+        short = 'r',
+        long,
+        value_enum,
+        help = "Trending time window (day / week)"
+    )]
     trend: Option<TimeWindow>,
 
-    // ---------- discover / genre 相关参数 ----------
-    /// 获取类型列表 (需要 --type movie 或 --type tv)
-    #[arg(short='G', long, help = "输出当前媒体类型支持的所有分类及其 ID", conflicts_with_all = ["wd", "id", "list", "trend", "discover"])]
+    // ---------- discover / genre options ----------
+    /// Get genre list
+    #[arg(short='G', long, help = "Output all genres for current media type", conflicts_with_all = ["wd", "id", "list", "trend", "discover"])]
     genres: bool,
 
-    /// 使用发现功能 (按条件筛选电影/剧集)
+    /// Use discover mode
     #[arg(
         short,
         long,
-        help = "开启高级筛选模式 (可配合 --genre, --year, --sort 等)"
+        help = "Enable advanced filter mode (use with --genre, --year, --sort)"
     )]
     discover: bool,
 
-    /// 类型 ID (逗号分隔，例如 28,12)，用于 --discover
+    /// Genre ID (comma-separated, e.g., 28,12), for --discover
     #[arg(
         short,
         long,
         value_delimiter = ',',
-        help = "筛选类型 ID (多个用逗号分隔)"
+        help = "Filter by genre IDs (comma-separated)"
     )]
     genre: Vec<u32>,
 
-    /// 发行年份筛选，支持格式：2023（精确年份）、2021-2025（区间）、2021-（之后）、-2025（之前）
-    #[arg(short = 'y', long, value_parser = parse_year_filter, allow_hyphen_values = true, help = "筛选发行年份，支持：2023, 2021-2025, 2021-, -2025")]
+    /// Release year filter
+    #[arg(short = 'y', long, value_parser = parse_year_filter, allow_hyphen_values = true, help = "Filter by year: 2023, 2021-2025, 2021-, -2025")]
     year: Option<YearFilter>,
 
-    /// 排序方式 (默认 popularity.desc)
+    /// Sort by field (default: popularity.desc)
     #[arg(
         long,
         value_enum,
         default_value = "popularity-desc",
-        help = "排序字段.次序，例如 vote_average.desc"
+        help = "Sort field.order, e.g., vote_average.desc"
     )]
     sort: SortBy,
 
-    /// 图片尺寸
+    /// Image size
     #[arg(
         short = 's',
         long,
         value_enum,
         default_value = "w500",
-        help = "图片尺寸"
+        help = "Image size"
     )]
     size: ImageSize,
 
-    /// 输出原始 JSON（不格式化）
-    #[arg(long, help = "输出未格式化的紧凑 JSON")]
+    /// Output raw JSON (no formatting)
+    #[arg(long, help = "Output raw compact JSON")]
     raw: bool,
 
-    /// 只输出 results 数组 (若存在)
-    #[arg(long, help = "仅输出结果数组（要求存在 results 字段）")]
+    /// Only output results array (if exists)
+    #[arg(long, help = "Only output results array (requires results field)")]
     compact: bool,
 }
 
@@ -158,10 +172,10 @@ enum MediaType {
 impl MediaType {
     fn api_endpoint(&self, id: Option<u64>) -> Result<String> {
         match self {
-            MediaType::Movie => Ok(format!("movie/{}", id.context("缺少 ID")?)),
-            MediaType::Tv => Ok(format!("tv/{}", id.context("缺少 ID")?)),
-            MediaType::Person => Ok(format!("person/{}", id.context("缺少 ID")?)),
-            other => bail!("详情查询不支持类型: {:?}", other),
+            MediaType::Movie => Ok(format!("movie/{}", id.context("ID is required")?)),
+            MediaType::Tv => Ok(format!("tv/{}", id.context("ID is required")?)),
+            MediaType::Person => Ok(format!("person/{}", id.context("ID is required")?)),
+            other => bail!("Detail query not supported for type: {:?}", other),
         }
     }
 }
@@ -264,14 +278,14 @@ impl TmdbClient {
     fn new(api_key: &str) -> Result<Self> {
         let mut headers = HeaderMap::new();
         let header_value =
-            HeaderValue::from_str(&format!("Bearer {}", api_key)).context("无效的 API Key")?;
+            HeaderValue::from_str(&format!("Bearer {}", api_key)).context("Invalid API Key")?;
         headers.insert(AUTHORIZATION, header_value);
 
         let client = reqwest::Client::builder()
             .default_headers(headers)
             .timeout(std::time::Duration::from_secs(30))
             .build()
-            .context("构建 HTTP 客户端失败")?;
+            .context("Failed to build HTTP client")?;
 
         Ok(Self { client })
     }
@@ -368,7 +382,7 @@ impl TmdbClient {
             (MediaType::Tv, Category::AiringToday) => "tv/airing_today",
             (MediaType::Tv, Category::OnTheAir) => "tv/on_the_air",
             _ => bail!(
-                "不支持的媒体类型与分类组合: {:?} / {:?}",
+                "Unsupported media type and category combination: {:?} / {:?}",
                 media_type,
                 category
             ),
@@ -418,7 +432,7 @@ impl TmdbClient {
         let endpoint = match media_type {
             MediaType::Movie => "genre/movie/list",
             MediaType::Tv => "genre/tv/list",
-            _ => bail!("类型列表仅支持 movie 或 tv"),
+            _ => bail!("Genre list only supports movie or tv"),
         };
         let url = format!("{}/{}", TMDB_BASE_URL, endpoint);
         self.client
@@ -442,7 +456,7 @@ impl TmdbClient {
         let base = match media_type {
             MediaType::Movie => format!("{}/discover/movie", TMDB_BASE_URL),
             MediaType::Tv => format!("{}/discover/tv", TMDB_BASE_URL),
-            _ => bail!("discover 仅支持 movie 或 tv"),
+            _ => bail!("Discover only supports movie or tv"),
         };
 
         let mut params: Vec<(&str, String)> = vec![
@@ -488,7 +502,7 @@ impl TmdbClient {
 }
 
 fn build_url(base: &str, params: &[(&str, &str)]) -> Result<Url> {
-    let mut url = Url::parse(base).with_context(|| format!("无效的基础 URL: {}", base))?;
+    let mut url = Url::parse(base).with_context(|| format!("Invalid base URL: {}", base))?;
     {
         let mut pairs = url.query_pairs_mut();
         for (k, v) in params {
@@ -499,7 +513,7 @@ fn build_url(base: &str, params: &[(&str, &str)]) -> Result<Url> {
 }
 
 fn build_url_dynamic(base: &str, params: &[(&str, String)]) -> Result<Url> {
-    let mut url = Url::parse(base).with_context(|| format!("无效的基础 URL: {}", base))?;
+    let mut url = Url::parse(base).with_context(|| format!("Invalid base URL: {}", base))?;
     {
         let mut pairs = url.query_pairs_mut();
         for (k, v) in params {
@@ -554,17 +568,17 @@ fn print_json(value: &serde_json::Value, raw: bool) {
     if raw {
         println!("{}", value);
     } else {
-        let output = serde_json::to_string_pretty(value).expect("JSON 序列化失败，这不应当发生");
+        let output = serde_json::to_string_pretty(value).expect("JSON serialization failed");
         println!("{}", output);
     }
 }
 
-// 年份过滤器
+// Year filter
 #[derive(Debug, Clone)]
 enum YearFilter {
-    /// 精确年份
+    /// Exact year
     Exact(i32),
-    /// 年份区间 (from, to)，两端均包含
+    /// Year range (from, to), both inclusive
     Range { from: Option<i32>, to: Option<i32> },
 }
 
@@ -572,13 +586,13 @@ impl FromStr for YearFilter {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err("年份不能为空".to_string());
+            return Err("Year cannot be empty".to_string());
         }
-        // 尝试解析单个数字
+        // Try parsing single number
         if let Ok(year) = s.parse::<i32>() {
             return Ok(YearFilter::Exact(year));
         }
-        // 解析区间：可能形式 "from-to", "from-", "-to"
+        // Parse range: "from-to", "from-", "-to"
         if s.contains('-') {
             let parts: Vec<&str> = s.splitn(2, '-').collect();
             let left = parts[0].trim();
@@ -588,7 +602,7 @@ impl FromStr for YearFilter {
             } else {
                 Some(
                     left.parse::<i32>()
-                        .map_err(|_| format!("无效的起始年份: {}", left))?,
+                        .map_err(|_| format!("Invalid start year: {}", left))?,
                 )
             };
             let to = if right.is_empty() {
@@ -597,15 +611,15 @@ impl FromStr for YearFilter {
                 Some(
                     right
                         .parse::<i32>()
-                        .map_err(|_| format!("无效的结束年份: {}", right))?,
+                        .map_err(|_| format!("Invalid end year: {}", right))?,
                 )
             };
             if from.is_none() && to.is_none() {
-                return Err("年份区间无效".to_string());
+                return Err("Invalid year range".to_string());
             }
             return Ok(YearFilter::Range { from, to });
         }
-        Err(format!("无效的年份格式: {}", s))
+        Err(format!("Invalid year format: {}", s))
     }
 }
 
@@ -647,23 +661,23 @@ complete -F _tmdb_completions tmdb
 tmdb_completion() {{
     local -a opts
     opts=(
-        '(-w --wd)'{{-w,--wd}}'[搜索关键词]'
-        '(-p --pg)'{{-p,--pg}}'[页码]'
-        '(-L --lang)'{{-L,--lang}}'[语言]'
-        '(-a --adult)'{{-a,--adult}}'[包含成人内容]'
-        '(-t --type)'{{-t,--type}}'[媒体类型]: :(multi movie tv person collection company)'
+        '(-w --wd)'{{-w,--wd}}'[Search query]'
+        '(-p --pg)'{{-p,--pg}}'[Page number]'
+        '(-L --lang)'{{-L,--lang}}'[Language]'
+        '(-a --adult)'{{-a,--adult}}'[Include adult content]'
+        '(-t --type)'{{-t,--type}}'[Media type]: :(multi movie tv person collection company)'
         '(-i --id)'{{-i,--id}}'[TMDB ID]'
-        '(-S --season)'{{-S,--season}}'[季号]'
-        '(-l --list)'{{-l,--list}}'[列表]: :(popular top-rated now-playing upcoming airing-today on-the-air)'
-        '(-r --trend)'{{-r,--trend}}'[趋势]: :(day week)'
-        '--genres[类型列表]'
-        '(-d --discover)'{{-d,--discover}}'[发现模式]'
-        '(-g --genre)'{{-g,--genre}}'[类型ID]'
-        '(-y --year)'{{-y,--year}}'[年份]'
-        '--sort[排序]: :(popularity-desc popularity-asc vote-average-desc vote-average-asc vote-count-desc vote-count-asc revenue-desc revenue-asc release-date-desc release-date-asc primary-release-date-desc primary-release-date-asc original-title-desc original-title-asc)'
-        '(-s --size)'{{-s,--size}}'[图片尺寸]: :(w92 w154 w185 w342 w500 w780 original)'
-        '--raw[原始JSON]'
-        '--compact[仅输出results]'
+        '(-S --season)'{{-S,--season}}'[Season number]'
+        '(-l --list)'{{-l,--list}}'[Category list]: :(popular top-rated now-playing upcoming airing-today on-the-air)'
+        '(-r --trend)'{{-r,--trend}}'[Trend]: :(day week)'
+        '--genres[Genre list]'
+        '(-d --discover)'{{-d,--discover}}'[Discover mode]'
+        '(-g --genre)'{{-g,--genre}}'[Genre ID]'
+        '(-y --year)'{{-y,--year}}'[Year]'
+        '--sort[Sort]: :(popularity-desc popularity-asc vote-average-desc vote-average-asc vote-count-desc vote-count-asc revenue-desc revenue-asc release-date-desc release-date-asc primary-release-date-desc primary-release-date-asc original-title-desc original-title-asc)'
+        '(-s --size)'{{-s,--size}}'[Image size]: :(w92 w154 w185 w342 w500 w780 original)'
+        '--raw[Raw JSON]'
+        '--compact[Only results]'
     )
     _arguments -s "$opts[@]" '*:query:_null'
 }}
@@ -673,23 +687,23 @@ compdef tmdb_completion tmdb
         }
         Shell::Fish => {
             println!(
-                r#"complete -c tmdb -n '__fish_use_subcommand' -s w -l wd -d '搜索关键词'
-complete -c tmdb -n '__fish_use_subcommand' -s p -l pg -d '页码'
-complete -c tmdb -n '__fish_use_subcommand' -s L -l lang -d '语言'
-complete -c tmdb -n '__fish_use_subcommand' -s a -l adult -d '包含成人内容'
-complete -c tmdb -n '__fish_use_subcommand' -s t -l type -r -a 'multi movie tv person collection company' -d '媒体类型'
+                r#"complete -c tmdb -n '__fish_use_subcommand' -s w -l wd -d 'Search query'
+complete -c tmdb -n '__fish_use_subcommand' -s p -l pg -d 'Page number'
+complete -c tmdb -n '__fish_use_subcommand' -s L -l lang -d 'Language'
+complete -c tmdb -n '__fish_use_subcommand' -s a -l adult -d 'Include adult content'
+complete -c tmdb -n '__fish_use_subcommand' -s t -l type -r -a 'multi movie tv person collection company' -d 'Media type'
 complete -c tmdb -n '__fish_use_subcommand' -s i -l id -d 'TMDB ID'
-complete -c tmdb -n '__fish_use_subcommand' -s S -l season -d '季号'
-complete -c tmdb -n '__fish_use_subcommand' -s l -l list -r -a 'popular top-rated now-playing upcoming airing-today on-the-air' -d '列表'
-complete -c tmdb -n '__fish_use_subcommand' -s r -l trend -r -a 'day week' -d '趋势'
-complete -c tmdb -n '__fish_use_subcommand' --long genres -d '类型列表'
-complete -c tmdb -n '__fish_use_subcommand' -s d -l discover -d '发现模式'
-complete -c tmdb -n '__fish_use_subcommand' -s g -l genre -d '类型ID'
-complete -c tmdb -n '__fish_use_subcommand' -s y -l year -d '年份'
-complete -c tmdb -n '__fish_use_subcommand' -l sort -r -a 'popularity-desc popularity-asc vote-average-desc vote-average-asc vote-count-desc vote-count-asc revenue-desc revenue-asc release-date-desc release-date-asc primary-release-date-desc primary-release-date-asc original-title-desc original-title-asc' -d '排序'
-complete -c tmdb -n '__fish_use_subcommand' -s s -l size -r -a 'w92 w154 w185 w342 w500 w780 original' -d '图片尺寸'
-complete -c tmdb -n '__fish_use_subcommand' --long raw -d '原始JSON'
-complete -c tmdb -n '__fish_use_subcommand' --long compact -d '仅输出results'
+complete -c tmdb -n '__fish_use_subcommand' -s S -l season -d 'Season number'
+complete -c tmdb -n '__fish_use_subcommand' -s l -l list -r -a 'popular top-rated now-playing upcoming airing-today on-the-air' -d 'Category list'
+complete -c tmdb -n '__fish_use_subcommand' -s r -l trend -r -a 'day week' -d 'Trend'
+complete -c tmdb -n '__fish_use_subcommand' --long genres -d 'Genre list'
+complete -c tmdb -n '__fish_use_subcommand' -s d -l discover -d 'Discover mode'
+complete -c tmdb -n '__fish_use_subcommand' -s g -l genre -d 'Genre ID'
+complete -c tmdb -n '__fish_use_subcommand' -s y -l year -d 'Year'
+complete -c tmdb -n '__fish_use_subcommand' -l sort -r -a 'popularity-desc popularity-asc vote-average-desc vote-average-asc vote-count-desc vote-count-asc revenue-desc revenue-asc release-date-desc release-date-asc primary-release-date-desc primary-release-date-asc original-title-desc original-title-asc' -d 'Sort'
+complete -c tmdb -n '__fish_use_subcommand' -s s -l size -r -a 'w92 w154 w185 w342 w500 w780 original' -d 'Image size'
+complete -c tmdb -n '__fish_use_subcommand' --long raw -d 'Raw JSON'
+complete -c tmdb -n '__fish_use_subcommand' --long compact -d 'Only results'
 "#
             );
         }
@@ -700,7 +714,7 @@ complete -c tmdb -n '__fish_use_subcommand' --long compact -d '仅输出results'
 }
 
 fn main() -> Result<()> {
-    // 检测 completion 参数
+    // Check completion flag
     let args: Vec<String> = std::env::args().collect();
 
     // --completions
@@ -721,25 +735,25 @@ fn main() -> Result<()> {
                 return Ok(());
             }
         }
-        // 默认 bash
+        // Default to bash
         print_init(Shell::Bash);
         return Ok(());
     }
 
-    // 正常解析参数
+    // Normal parsing
     let mut args = Cli::parse();
 
-    // --season 自动将 type 设为 tv
+    // --season auto set type to tv
     if args.season.is_some() && !matches!(args.ty, MediaType::Tv) {
         args.ty = MediaType::Tv;
     }
-    // --discover 默认设为 movie
+    // --discover default to movie
     if args.discover && matches!(args.ty, MediaType::Multi) {
         args.ty = MediaType::Movie;
     }
 
     let api_key = std::env::var("TMDB_API_KEY").context(
-        "请设置环境变量 TMDB_API_KEY\n获取方式: https://www.themoviedb.org/settings/api",
+        "Please set TMDB_API_KEY environment variable\nGet it at: https://www.themoviedb.org/settings/api",
     )?;
     let client = TmdbClient::new(&api_key)?;
 
@@ -790,7 +804,7 @@ fn main() -> Result<()> {
                 Ok(())
             }
             Err(e) => {
-                eprintln!("请求失败: {:#}", e);
+                eprintln!("Request failed: {:#}", e);
                 std::process::exit(1);
             }
         }
