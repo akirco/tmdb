@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -40,11 +40,11 @@ jobs:
         run: |
           mkdir -p release
           if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
-            cp target/${{ matrix.target }}/release/dotmgr.exe release/dotmgr.exe
-            7z a dotmgr-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip -r release/*
+            cp target/${{ matrix.target }}/release/tmdb.exe release/tmdb.exe
+            7z a tmdb-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip -r release/*
           else
-            cp target/${{ matrix.target }}/release/dotmgr release/dotmgr
-            tar -czvf dotmgr-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C release dotmgr
+            cp target/${{ matrix.target }}/release/tmdb release/tmdb
+            tar -czvf tmdb-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C release tmdb
           fi
 
       - name: Upload artifacts
@@ -52,8 +52,8 @@ jobs:
         with:
           name: release-${{ matrix.target }}
           path: |
-            dotmgr-*.tar.gz
-            dotmgr-*.zip
+            tmdb-*.tar.gz
+            tmdb-*.zip
 
   create-release:
     needs: release
