@@ -8,7 +8,7 @@ use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use std::str::FromStr;
 use url::Url;
 
-const TMDB_BASE_URL: &str = "https://upxgo.deno.dev/tmdb/3";
+const DEFAULT_TMDB_BASE_URL: &str = "https://upxgo.deno.dev/tmdb/3";
 const TMDB_IMAGE_BASE: &str = "https://image.tmdb.org/t/p";
 const STYLES: Styles = Styles::styled()
     .header(AnsiColor::Yellow.on_default().bold())
@@ -153,6 +153,10 @@ struct Cli {
     /// Only output results array (if exists)
     #[arg(long, help = "Only output results array (requires results field)")]
     compact: bool,
+}
+
+fn tmdb_base_url() -> String {
+    std::env::var("TMDB_BASE_URL").unwrap_or_else(|_| DEFAULT_TMDB_BASE_URL.to_string())
 }
 
 fn parse_year_filter(s: &str) -> Result<YearFilter, String> {
@@ -308,7 +312,7 @@ impl TmdbClient {
         };
 
         let url = build_url(
-            &format!("{}/{}", TMDB_BASE_URL, endpoint),
+            &format!("{}/{}", tmdb_base_url(), endpoint),
             &[
                 ("query", query),
                 ("page", &page.to_string()),
@@ -334,7 +338,7 @@ impl TmdbClient {
     ) -> Result<serde_json::Value> {
         let endpoint = media_type.api_endpoint(Some(id))?;
         let url = build_url(
-            &format!("{}/{}", TMDB_BASE_URL, endpoint),
+            &format!("{}/{}", tmdb_base_url(), endpoint),
             &[("language", lang)],
         )?;
         self.client
@@ -353,7 +357,7 @@ impl TmdbClient {
         lang: &str,
     ) -> Result<serde_json::Value> {
         let url = build_url(
-            &format!("{}/tv/{}/season/{}", TMDB_BASE_URL, tv_id, season_number),
+            &format!("{}/tv/{}/season/{}", tmdb_base_url(), tv_id, season_number),
             &[("language", lang)],
         )?;
         self.client
@@ -388,7 +392,7 @@ impl TmdbClient {
             ),
         };
         let url = build_url(
-            &format!("{}/{}", TMDB_BASE_URL, endpoint),
+            &format!("{}/{}", tmdb_base_url(), endpoint),
             &[("page", &page.to_string()), ("language", lang)],
         )?;
         self.client
@@ -416,7 +420,7 @@ impl TmdbClient {
         let window_str = window.as_str();
 
         let url = build_url(
-            &format!("{}/trending/{}/{}", TMDB_BASE_URL, media, window_str),
+            &format!("{}/trending/{}/{}", tmdb_base_url(), media, window_str),
             &[("page", &page.to_string()), ("language", lang)],
         )?;
         self.client
@@ -434,7 +438,7 @@ impl TmdbClient {
             MediaType::Tv => "genre/tv/list",
             _ => bail!("Genre list only supports movie or tv"),
         };
-        let url = format!("{}/{}", TMDB_BASE_URL, endpoint);
+        let url = format!("{}/{}", tmdb_base_url(), endpoint);
         self.client
             .get(&url)
             .send()
@@ -454,8 +458,8 @@ impl TmdbClient {
         year_filter: Option<&YearFilter>,
     ) -> Result<serde_json::Value> {
         let base = match media_type {
-            MediaType::Movie => format!("{}/discover/movie", TMDB_BASE_URL),
-            MediaType::Tv => format!("{}/discover/tv", TMDB_BASE_URL),
+            MediaType::Movie => format!("{}/discover/movie", tmdb_base_url()),
+            MediaType::Tv => format!("{}/discover/tv", tmdb_base_url()),
             _ => bail!("Discover only supports movie or tv"),
         };
 

@@ -8,14 +8,24 @@
 git clone https://github.com/akirco/tmdb
 cd tmdb
 cargo install --path .
+
+# or
+
+cargo install --git https://github.com/akirco/tmdb
+
+# or
+#https://github.com/marcosnils/bin
+
+bin install https://github.com/akirco/tmdb
 ```
 
 ## 配置
 
-设置 TMDB API Key：
+设置 TMDB API Key 和TMDB_BASE_URL(可选：默认https://upxgo.deno.dev/tmdb/3)：
 
 ```bash
 export TMDB_API_KEY="your_api_key"
+export TMDB_BASE_URL=""
 ```
 
 获取 API Key: https://www.themoviedb.org/settings/api
